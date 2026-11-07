@@ -50,11 +50,6 @@ resource "aws_route_table" "public_rt" {
 }
 
 resource "aws_route_table_association" "public_assoc" {
-  subnet_id      = data.aws_subnet.fw_subnets.ids
-  route_table_id = aws_route_table.public.id
-}
-
-resource "aws_route_table_association" "public_assoc" {
   for_each       = toset(data.aws_subnets.public_subnets_details.ids)
   
   subnet_id      = each.value

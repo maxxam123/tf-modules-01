@@ -1,3 +1,33 @@
+data "aws_vpc" "hub_vpc" {
+  filter {
+    name   = "tag:Name"
+    values = ["dev-vpc"]
+  }
+}
+
+data "aws_subnets" "fw_subnets_details" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.hub_vpc.id]
+  }
+
+  filter {
+    name   = "tag:network"
+    values = ["fw"]
+  }
+}
+
+data "aws_subnet" "fw_subnets" {
+  for_each = toset(data.aws_subnets.fw_subnets_details.ids)
+  id       = each.value
+}
+
+locals {
+  fw_subnet_map = {
+    for s in data.aws_subnet.fw_subnets : s.availability_zone => s.id
+  }
+}
+
 resource "aws_networkfirewall_rule_group" "block_domains" {
   capacity = 100
   name     = "${var.env}-block-domains"
@@ -30,13 +60,13 @@ resource "aws_networkfirewall_firewall_policy" "this" {
 resource "aws_networkfirewall_firewall" "this" {
   name                = "${var.env}-hub-firewall"
   firewall_policy_arn = aws_networkfirewall_firewall_policy.this.arn
-  vpc_id              = module.vpc.vpc_id # Attaches to your Hub VPC
+  vpc_id              = data.aws_vpc.hub_vpc.id
 
-  # Dynamic loop turns a list of subnet strings into multiple AWS mapping blocks
   dynamic "subnet_mapping" {
-    for_each = var.fw_id
+    for_each = local.fw_subnet_map
     content {
-      subnet_id = subnet_mapping.value
+      subnet_id       = subnet_mapping.value
+      ip_address_type = "DUALSTACK" # Enterprise compliance standard for IPv4/IPv6 support
     }
   }
 }

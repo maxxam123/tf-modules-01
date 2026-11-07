@@ -12,6 +12,7 @@ resource "aws_nat_gateway" "this" {
 
   tags = {
     Name = "${var.env}-main"
+    "nat" = "nat"
   }
 
   depends_on = [ aws_internet_gateway.this ]
