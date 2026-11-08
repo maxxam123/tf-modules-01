@@ -2,8 +2,8 @@ resource "aws_eip" "eip" {
   domain = "vpc"
 
   tags = {
-    Name = "hub-${var.env}-eip-${format("%02d", count.index + 1)}"
-    NetworkTier = "hub-iep"
+    Name = "hub-${var.env}-eip"
+    NetworkTier = "hub-eip"
   }
 }
 
@@ -12,7 +12,7 @@ resource "aws_nat_gateway" "nat" {
   subnet_id = var.pub_subnets[0].id
 
   tags = {
-    Name = "hub-${var.env}-nat-${format("%02d", count.index + 1)}"
+    Name = "hub-${var.env}-nat"
     NetworkTier = "hub-nat"
   }
 

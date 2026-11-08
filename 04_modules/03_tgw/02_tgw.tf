@@ -13,7 +13,7 @@ data "aws_subnets" "hub_tgw_subnets" {
 
   filter {
     name   = "tag:NetworkTier"
-    values = ["hub-tgw"]
+    values = ["hub-tgw-subnet"]
   }
 }
 
@@ -32,7 +32,7 @@ data "aws_subnets" "spoke_tgw_subnets" {
 
   filter {
     name   = "tag:NetworkTier"
-    values = ["spoke-tgw"]
+    values = ["spoke-tgw-subnet"]
   }
 }
 
@@ -63,7 +63,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "hub" {
 
 resource "aws_ec2_transit_gateway_vpc_attachment" "spoke" {
   transit_gateway_id = aws_ec2_transit_gateway.this.id
-  vpc_id             = data.aws_vpc.hub_vpc.id
+  vpc_id             = data.aws_vpc.spoke_vpc.id
   subnet_ids         = data.aws_subnets.spoke_tgw_subnets.ids
 
   dns_support  = "enable"

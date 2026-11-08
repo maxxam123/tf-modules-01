@@ -20,6 +20,6 @@ resource "aws_subnet" "tgw" {
 
   tags = {
     Name      = "hub-${var.env}-tgw-subnet-${format("%02d", count.index + 1)}"
-    NetworkTier = "hub-tgw"
+    NetworkTier = "hub-tgw-subnet"
   }
 }

@@ -1,7 +1,7 @@
 data "aws_vpc" "hub_vpc" {
   filter {
-    name   = "tag:Name"
-    values = ["dev-vpc"]
+    name   = "tag:NetworkTier"
+    values = ["hub-vpc"]
   }
 }
 
@@ -13,7 +13,7 @@ data "aws_subnets" "pub_subnets" {
 
   filter {
     name   = "tag:NetworkTier"
-    values = ["pub"]
+    values = ["hub-pub-subnet"]
   }
 }
 
@@ -60,7 +60,7 @@ resource "aws_lb" "this" {
 
 resource "aws_lb_target_group" "default" {
   name        = "${var.name}-tg-default"
-  port        = 80
+  port        = 8080
   protocol    = "HTTP"
   vpc_id      = data.aws_vpc.hub_vpc.id
   target_type = "ip" 

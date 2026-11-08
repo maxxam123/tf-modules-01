@@ -31,23 +31,40 @@ data "aws_subnets" "public_subnets" {
   }
 }
 
+# resource "aws_route_table" "public_rt" {
+ # vpc_id = data.aws_vpc.hub_vpc.id
+
+ # route {
+  #  cidr_block = "0.0.0.0/0"
+  #  gateway_id = data.aws_internet_gateway.hub_igw.id
+  #}
+  #route {
+  #  cidr_block = "20.0.0.0/16"
+  #  transit_gateway_id = data.aws_ec2_transit_gateway.hub_tgw.id
+  #}
+#}
+
 resource "aws_route_table" "public_rt" {
   vpc_id = data.aws_vpc.hub_vpc.id
+}
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = data.aws_internet_gateway.hub_igw.id
-  }
-  route {
-    cidr_block = "20.0.0.0/16"
-    transit_gateway_id = data.aws_ec2_transit_gateway.hub_tgw.id
-  }
+resource "aws_route" "public_internet" {
+  route_table_id         = aws_route_table.public_rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = data.aws_internet_gateway.hub_igw.id
+}
+
+resource "aws_route" "public_tgw" {
+  route_table_id         = aws_route_table.public_rt.id
+  destination_cidr_block = "20.0.0.0/16"
+  transit_gateway_id     = data.aws_ec2_transit_gateway.hub_tgw.id
 }
 
 resource "aws_route_table_association" "public_assoc" {
   for_each       = toset(data.aws_subnets.public_subnets.ids)
   
   subnet_id      = each.value
-  route_table_id = aws_route_table.public_rt[each.value].id
+  # route_table_id = aws_route_table.public_rt[each.value].id
+  route_table_id = aws_route_table.public_rt.id
 }
 

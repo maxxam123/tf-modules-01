@@ -37,6 +37,7 @@ resource "aws_route_table_association" "public_assoc" {
   for_each       = toset(data.aws_subnets.tgw_subnets.ids)
   
   subnet_id      = each.value
-  route_table_id = aws_route_table.tgw_rt[each.value].id
+  route_table_id = aws_route_table.tgw_rt.id
+  # route_table_id = aws_route_table.tgw_rt[each.value].id
 }
 

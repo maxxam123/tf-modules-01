@@ -5,7 +5,7 @@ resource "aws_vpc" "hub" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "hub-${var.env}-vpc-${format("%02d", count.index + 1)}"
+    Name = "hub-${var.env}-vpc"
     NetworkTier = "hub-vpc"
   }
 }

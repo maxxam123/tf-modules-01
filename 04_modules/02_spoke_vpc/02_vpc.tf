@@ -5,7 +5,7 @@ resource "aws_vpc" "this" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "spoke-${var.env}-vpc-${format("%02d", count.index + 1)}"
+    Name = "spoke-${var.env}-vpc"
     NetworkTier = "spoke-vpc"
   }
 }
