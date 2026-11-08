@@ -1,7 +1,13 @@
 data "aws_vpc" "hub_vpc" {
   filter {
     name   = "tag:lb"
-    values = ["lb"] # 🔍 Searches all VPCs in your AWS account for this exact Name tag
+    values = ["lb"]
+  }
+}
+
+data "aws_lb" "hub_alb" {
+  tags = {
+    Name = "lb"
   }
 }
 
