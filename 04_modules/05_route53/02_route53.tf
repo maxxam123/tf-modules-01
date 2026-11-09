@@ -16,7 +16,7 @@ resource "aws_route53_zone" "primary" {
   force_destroy = false
 
     vpc {
-    vpc_id     = aws_vpc.hub_vpc.id
+    vpc_id     = data.aws_vpc.hub_vpc.id
     vpc_region = "us-east-1"
   }
 }
@@ -24,7 +24,7 @@ resource "aws_route53_zone" "primary" {
 resource "aws_route53_record" "app_alias" {
   zone_id = aws_route53_zone.primary.id
 
-  name    = "://mycompany.com"
+  name    = "mycompany.com"
   type    = "A"
 
   alias {

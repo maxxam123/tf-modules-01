@@ -5,7 +5,7 @@ data "aws_vpc" "hub_vpc" {
   }
 }
 
-data "aws_subnets" "fw_subnets_details" {
+data "aws_subnets" "fw_subnets" {
   filter {
     name   = "vpc-id"
     values = [data.aws_vpc.hub_vpc.id]
@@ -18,7 +18,7 @@ data "aws_subnets" "fw_subnets_details" {
 }
 
 data "aws_subnet" "fw_subnets" {
-  for_each = toset(data.aws_subnets.fw_subnets_details.ids)
+  for_each = toset(data.aws_subnets.fw_subnets.ids)
   id       = each.value
 }
 
@@ -63,10 +63,19 @@ resource "aws_networkfirewall_firewall" "this" {
   vpc_id              = data.aws_vpc.hub_vpc.id
 
   dynamic "subnet_mapping" {
-    for_each = local.fw_subnet_map
+    for_each = toset(var.availability_zones)
     content {
-      subnet_id       = subnet_mapping.value
-      ip_address_type = "DUALSTACK" # Enterprise compliance standard for IPv4/IPv6 support
+      subnet_id       = lookup(local.fw_subnet_map, subnet_mapping.value, null)
+      ip_address_type = "DUALSTACK"
+    }
+  }
+
+    lifecycle {
+    precondition {
+      condition = alltrue([
+        for az in var.availability_zones : lookup(local.fw_subnet_map, az, null) != null
+      ])
+      error_message = "AWS Network Firewall deployment halted: One or more subnets corresponding to your target var.availability_zones could not be found via data discovery."
     }
   }
 }

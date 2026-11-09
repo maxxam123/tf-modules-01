@@ -1,15 +1,15 @@
 provider "aws" {
-  region = "us-east-1"
+  region = "eu-central-1"
 }
 
 terraform {
   backend "local" {
-    path = "dev/tgw/terraform.tfstate"
+    path = "tgw/terraform.tfstate"
   }
 }
 
 module "tgw" {
-  source = "../../../03_modules/03_tgw"
+  source = "../../../06_modules/02_tgw"
 
-  env             = "dev"
+  env            = "dev"
 }

@@ -31,19 +31,6 @@ data "aws_subnets" "public_subnets" {
   }
 }
 
-# resource "aws_route_table" "public_rt" {
- # vpc_id = data.aws_vpc.hub_vpc.id
-
- # route {
-  #  cidr_block = "0.0.0.0/0"
-  #  gateway_id = data.aws_internet_gateway.hub_igw.id
-  #}
-  #route {
-  #  cidr_block = "20.0.0.0/16"
-  #  transit_gateway_id = data.aws_ec2_transit_gateway.hub_tgw.id
-  #}
-#}
-
 resource "aws_route_table" "public_rt" {
   vpc_id = data.aws_vpc.hub_vpc.id
 }

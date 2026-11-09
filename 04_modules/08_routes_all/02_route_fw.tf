@@ -68,6 +68,7 @@ locals {
 }
 
 resource "aws_route_table" "hub_tgw_rt" {
+  # for_each = toset(data.aws_subnets.tgw_subnets.ids)
   for_each = toset(var.availability_zones)
   vpc_id   = data.aws_vpc.hub_vpc.id
 }
@@ -76,6 +77,8 @@ resource "aws_route" "tgw_route" {
   for_each = toset(data.aws_subnets.tgw_subnets.ids)
 
   route_table_id = aws_route_table.hub_tgw_rt[data.aws_subnet.ind_tgw_subnet[each.value].availability_zone].id
+  # route_table_id = aws_route_table.hub_tgw_rt[each.value].id
+  
 
   destination_cidr_block = "0.0.0.0/0"
   vpc_endpoint_id        = lookup(local.nfw_az_to_endpoint, data.aws_subnet.ind_tgw_subnet[each.value].availability_zone, null)
@@ -92,7 +95,9 @@ resource "aws_route_table_association" "hub_tgw_rt_assoc" {
   for_each = toset(data.aws_subnets.tgw_subnets.ids)
 
   subnet_id      = each.value
+  # route_table_id = aws_route_table.hub_tgw_rt[data.aws_subnet.ind_tgw_subnet[each.value].availability_zone].id
   route_table_id = aws_route_table.hub_tgw_rt[data.aws_subnet.ind_tgw_subnet[each.value].availability_zone].id
+  # route_table_id = aws_route_table.hub_tgw_rt[each.value].id
 }
 
 

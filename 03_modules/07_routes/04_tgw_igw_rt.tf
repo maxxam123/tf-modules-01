@@ -100,7 +100,8 @@ resource "aws_route" "igw_ingress_to_nfw" {
   for_each = toset(data.aws_subnets.tgw_subnets_details.ids)
 
   route_table_id         = aws_route_table.igw_ingress_rt.id
-  destination_cidr_block = "10.0.0.0/16"
+  # destination_cidr_block = "10.0.0.0/16"
+  destination_cidr_block = data.aws_subnet.individual_tgw_subnet[each.value].cidr_block
 
   vpc_endpoint_id        = lookup(local.nfw_az_to_endpoint, data.aws_subnet.individual_tgw_subnet[each.value].availability_zone, null)
 
