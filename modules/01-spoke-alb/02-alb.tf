@@ -1,25 +1,6 @@
-data "aws_vpc" "hub_vpc" {
-  filter {
-    name   = "tag:NetworkTier"
-    values = ["hub-vpc"]
-  }
-}
-
-data "aws_subnets" "pub_subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.hub_vpc.id]
-  }
-
-  filter {
-    name   = "tag:NetworkTier"
-    values = ["hub-pub-subnet"]
-  }
-}
-
-resource "aws_security_group" "alb" {
+resource "aws_security_group" "alb_spoke_sg" {
   name        = "${var.name}-sg"
-  vpc_id      = data.aws_vpc.hub_vpc.id
+  vpc_id      = var.vpc_id.id
 
   ingress {
     from_port   = 80
@@ -45,10 +26,10 @@ resource "aws_security_group" "alb" {
 
 resource "aws_lb" "this" {
   name               = var.name
-  internal           = false 
+  internal           = true
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = data.aws_subnets.pub_subnets.ids
+  security_groups    = [aws_security_group.alb_spoke_sg.id]
+  subnets            = var.tgw_subnet_id
 
   enable_deletion_protection = var.env == "prod" ? true : false
 
@@ -58,11 +39,11 @@ resource "aws_lb" "this" {
   }
 }
 
-resource "aws_lb_target_group" "default" {
+resource "aws_lb_target_group" "default_spoke" {
   name        = "${var.name}-tg-default"
   port        = 8080
   protocol    = "HTTP"
-  vpc_id      = data.aws_vpc.hub_vpc.id
+  vpc_id      = var.vpc_id.id
   target_type = "ip" 
 
   health_check {
@@ -77,27 +58,27 @@ resource "aws_lb_target_group" "default" {
   }
 }
 
-resource "aws_lb_target_group_attachment" "default" {
-  target_group_arn = aws_lb_target_group.default.arn
+resource "aws_lb_target_group_attachment" "default_spoke" {
+  target_group_arn = aws_lb_target_group.default_spoke.arn
   target_id        = "10.1.10.45"
   port             = 8080
 }
 
-resource "aws_lb_listener" "https" {
+resource "aws_lb_listener" "https_spoke" {
   load_balancer_arn = aws_lb.this.arn
   port              = "443"
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06" # Modern TLS 1.3 policy
-  certificate_arn   = "arn:aws:acm:us-east-1:123456789012:certificate/placeholder" # Replace or pass as var
+  # ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06" # Modern TLS 1.3 policy
+  # certificate_arn   = "arn:aws:acm:us-east-1:123456789012:certificate/placeholder" # Replace or pass as var
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.default.arn
+    target_group_arn = aws_lb_target_group.default_spoke.arn
   }
 }
 
-resource "aws_lb_listener_rule" "default_listener_rule" {
-  listener_arn = aws_lb_listener.https.arn
+resource "aws_lb_listener_rule" "default_listener_rule_spoke" {
+  listener_arn = aws_lb_listener.https_spoke.arn
   priority     = 100
 
   condition {
@@ -107,6 +88,6 @@ resource "aws_lb_listener_rule" "default_listener_rule" {
   }
   action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.default.arn
+    target_group_arn = aws_lb_target_group.default_spoke.arn
   }
 }
